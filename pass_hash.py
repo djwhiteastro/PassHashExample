@@ -9,7 +9,27 @@ import base64
 import struct
 import getpass
 import sys
+import argparse
+import pickle
 
+def parse_command_line(description=("This basic tool allows people to input, "
+    "save and load hashed, salted and pickled passwords. For education only, "
+    "obvs.")):
+
+    """
+    Parser of command line arguments for SeqQC.py
+    """
+
+    parser = argparse.ArgumentParser(
+        description=description,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument("-i", "--infile", default=None,
+        help="Input file containing hashed password information")
+    parser.add_argument("-o", "--outfile", default=None,
+        help="Output file to save password hashes")
+
+    return parser.parse_args()
 
 class Hash(object):
     ''' Creates object which stores hashed password and provides test '''
@@ -17,7 +37,6 @@ class Hash(object):
         self.salt = self._make_salt()
         self.hashes = {}
         self.pwd = {}
-        self.hashidx = []
 
     @staticmethod
     def _make_salt():
@@ -40,16 +59,15 @@ class Hash(object):
         for chars in triplets:
             m = hashlib.sha256()
             m.update(txt[chars[0]]+txt[chars[1]]+txt[chars[2]]+self.salt)
-            self.hashidx.append(tuple(chars))
             self.hashes.update({tuple(chars): m.hexdigest()})
             # print("{}: {}".format(chars, m.hexdigest()))
 
     def test_input(self):
         '''Asks user for random letters from their password, and tests if
         correct'''
-
         combo_idx = random.randint(0, len(self.hashes)-1)
-        combo = self.hashidx[combo_idx]
+        hashidx = self.hashes.keys()
+        combo = hashidx[combo_idx]
         one = raw_input("Enter letter {}: ".format(combo[0]+1))
         two = raw_input("Enter letter {}: ".format(combo[1]+1))
         thr = raw_input("Enter letter {}: ".format(combo[2]+1))
@@ -62,7 +80,49 @@ class Hash(object):
         if test_hash == in_hash:
             print("Congrats! You know your password!")
         else:
-            print("Erm, something went wrong...")
+            print("That doesn't match... Did you put in the right letters?")
+            print("Maybe you should try again!")
+            sys.exit()
+
+    def LoadHash(self, infile):
+        ''' Loads hash from pickled file (needs to be same format as made by
+        this script: salt, hash indeces, hashes)'''
+        try:
+            hash_file = open(infile, 'rb')
+            print("Found input hash file, loading into hash object")
+        except IOError:
+            sys.exit("Error opening file to load hash, or something...")
+
+        self.salt = pickle.load(hash_file)
+        self.hashes = pickle.load(hash_file)
+        hash_file.close()
+
+        print("Now testing user knows their password!")
+        self.test_input()
+        raw_input("Press Enter key to print all hash combinations")
+        self.print_hashes()
+
+    def SaveHash(self, outfile):
+        ''' Saves hash from pickled file to be loaded later'''
+        try:
+            hash_file = open(outfile, 'wb')
+        except IOError:
+            sys.exit("Error opening file to save hash, or something...")
+        print("Random salt is: {}".format(self.salt))
+        pwd1 = getpass.getpass("Input password: ")
+        pwd2 = getpass.getpass("Reinput password: ")
+        if pwd1 != pwd2:
+            sys.exit("Error! Passwords don't match!")
+        print("Hashing password and saving to file {}".format(args.outfile))
+        self.hash_pwd(pwd1)
+
+        #Clear password variables, actual password no longer stored
+        pwd1, pwd2 = None, None
+
+        pickle.dump(self.salt, hash_file)
+        pickle.dump(self.hashes, hash_file)
+
+        hash_file.close()
 
     def print_hashes(self):
         ''' Prints hashes for each combo of letters'''
@@ -70,18 +130,11 @@ class Hash(object):
             print("{}: {}".format(line, self.hashes[line]))
 
 if __name__ == '__main__':
+    args = parse_command_line()
     print("Hello!")
-    print("Creating hash object and generating random salt")
+    print("Initiating hash object and generating random salt")
     myHash = Hash()
-    print("Salt is: {}".format(myHash.salt))
-    pwd1 = getpass.getpass("Input password: ")
-    pwd2 = getpass.getpass("Reinput password: ")
-    if pwd1 != pwd2:
-        sys.exit("Error! Passwords don't match!")
-    myHash.hash_pwd(pwd1)
-    pwd1 = None #Clear password variables, actual password no longer stored
-    pwd2 = None
-    # print(myHash.hashes)
-    myHash.test_input()
-    raw_input("Press any key to print all hash combinations")
-    myHash.print_hashes()
+    if args.infile:
+        myHash.LoadHash(args.infile)
+    elif args.outfile:
+        myHash.SaveHash(args.outfile)
