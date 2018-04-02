@@ -79,6 +79,8 @@ if __name__ == '__main__':
     if pwd1 != pwd2:
         sys.exit("Error! Passwords don't match!")
     myHash.hash_pwd(pwd1)
+    pwd1 = None #Clear password variables, actual password no longer stored
+    pwd2 = None
     # print(myHash.hashes)
     myHash.test_input()
     raw_input("Press any key to print all hash combinations")
