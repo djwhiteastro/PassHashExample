@@ -12,6 +12,10 @@ import sys
 import argparse
 import pickle
 
+if sys.version_info.major == 3: get_input = input
+if sys.version_info.major == 2: get_input = raw_input
+
+
 def parse_command_line(description=("This basic tool allows people to input, "
     "save and load hashed, salted and pickled passwords. For education only, "
     "obvs.")):
@@ -50,7 +54,7 @@ class Hash(object):
     def HashPwd(self, txt):
         ''' Hashes password and letter combos'''
         m = hashlib.sha256()
-        m.update(txt+self.salt)
+        m.update(("{}{}".format(txt, self.salt)).encode('utf-8'))
 
         self.pwd.update({'pwd': m.hexdigest()})
 
@@ -58,7 +62,8 @@ class Hash(object):
 
         for chars in triplets:
             m = hashlib.sha256()
-            m.update(txt[chars[0]]+txt[chars[1]]+txt[chars[2]]+self.salt)
+            m.update("{}{}{}{}".format(txt[chars[0]], txt[chars[1]], 
+                txt[chars[2]], self.salt).encode('utf-8'))
             self.hashes.update({tuple(chars): m.hexdigest()})
             # print("{}: {}".format(chars, m.hexdigest()))
 
@@ -66,14 +71,14 @@ class Hash(object):
         '''Asks user for random letters from their password, and tests if
         correct'''
         combo_idx = random.randint(0, len(self.hashes)-1)
-        hashidx = self.hashes.keys()
+        hashidx = list(self.hashes.keys())
         combo = hashidx[combo_idx]
-        one = raw_input("Enter letter {}: ".format(combo[0]+1))
-        two = raw_input("Enter letter {}: ".format(combo[1]+1))
-        thr = raw_input("Enter letter {}: ".format(combo[2]+1))
+        one = get_input("Enter letter {}: ".format(combo[0]+1))
+        two = get_input("Enter letter {}: ".format(combo[1]+1))
+        thr = get_input("Enter letter {}: ".format(combo[2]+1))
 
         m = hashlib.sha256()
-        m.update(one+two+thr+self.salt)
+        m.update((one+two+thr+self.salt).encode('utf-8'))
         in_hash = m.hexdigest()
         test_hash = self.hashes[combo]
 
@@ -93,13 +98,13 @@ class Hash(object):
         except IOError:
             sys.exit("Error opening file to load hash, or something...")
 
-        self.salt = pickle.load(hash_file)
+        self.salt = str(pickle.load(hash_file))
         self.hashes = pickle.load(hash_file)
         hash_file.close()
 
         print("Now testing user knows their password!")
         self.TestInput()
-        raw_input("Press Enter key to print all hash combinations")
+        get_input("Press Enter key to print all hash combinations")
         self.print_hashes()
 
     def SaveHash(self, outfile):
