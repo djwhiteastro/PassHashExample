@@ -24,9 +24,9 @@ def parse_command_line(description=("This basic tool allows people to input, "
         description=description,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("-i", "--infile", default=None,
+    parser.add_argument("-t", "--test", default=None,
         help="Input file containing hashed password information")
-    parser.add_argument("-o", "--outfile", default=None,
+    parser.add_argument("-s", "--save", default=None,
         help="Output file to save password hashes")
 
     return parser.parse_args()
@@ -113,7 +113,7 @@ class Hash(object):
         pwd2 = getpass.getpass("Reinput password: ")
         if pwd1 != pwd2:
             sys.exit("Error! Passwords don't match!")
-        print("Hashing password and saving to file {}".format(args.outfile))
+        print("Hashing password and saving to file {}".format(args.save))
         self.hash_pwd(pwd1)
 
         #Clear password variables, actual password no longer stored
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     print("Hello!")
     print("Initiating hash object and generating random salt")
     myHash = Hash()
-    if args.infile:
-        myHash.LoadHash(args.infile)
-    elif args.outfile:
-        myHash.SaveHash(args.outfile)
+    if args.test:
+        myHash.LoadHash(args.test)
+    elif args.save:
+        myHash.SaveHash(args.save)
