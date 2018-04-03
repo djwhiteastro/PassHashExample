@@ -34,12 +34,12 @@ def parse_command_line(description=("This basic tool allows people to input, "
 class Hash(object):
     ''' Creates object which stores hashed password and provides test '''
     def __init__(self):
-        self.salt = self._make_salt()
+        self.salt = self._MakeSalt()
         self.hashes = {}
         self.pwd = {}
 
     @staticmethod
-    def _make_salt():
+    def _MakeSalt():
         '''This could be much better, but I took a basic version off stack
         exchange'''
         rand_float = random.SystemRandom().random()
@@ -47,7 +47,7 @@ class Hash(object):
         # print(base64.b64encode((struct.pack('!d', rand_float))))
         return base64.b64encode((struct.pack('!d', rand_float)))
 
-    def hash_pwd(self, txt):
+    def HashPwd(self, txt):
         ''' Hashes password and letter combos'''
         m = hashlib.sha256()
         m.update(txt+self.salt)
@@ -62,7 +62,7 @@ class Hash(object):
             self.hashes.update({tuple(chars): m.hexdigest()})
             # print("{}: {}".format(chars, m.hexdigest()))
 
-    def test_input(self):
+    def TestInput(self):
         '''Asks user for random letters from their password, and tests if
         correct'''
         combo_idx = random.randint(0, len(self.hashes)-1)
@@ -98,7 +98,7 @@ class Hash(object):
         hash_file.close()
 
         print("Now testing user knows their password!")
-        self.test_input()
+        self.TestInput()
         raw_input("Press Enter key to print all hash combinations")
         self.print_hashes()
 
@@ -114,7 +114,7 @@ class Hash(object):
         if pwd1 != pwd2:
             sys.exit("Error! Passwords don't match!")
         print("Hashing password and saving to file {}".format(args.save))
-        self.hash_pwd(pwd1)
+        self.HashPwd(pwd1)
 
         #Clear password variables, actual password no longer stored
         pwd1, pwd2 = None, None
