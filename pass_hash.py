@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
-''' Hash testing script'''
+'''
+Hash testing script
+Created by Darren White
+Last modified: 2018-04-03
+'''
 
 import hashlib
 import itertools
@@ -12,8 +16,10 @@ import sys
 import argparse
 import pickle
 
-if sys.version_info.major == 3: get_input = input
-if sys.version_info.major == 2: get_input = raw_input
+if sys.version_info.major == 3:
+    get_input = input
+if sys.version_info.major == 2:
+    get_input = raw_input
 
 
 def parse_command_line(description=("This basic tool allows people to input, "
@@ -62,7 +68,7 @@ class Hash(object):
 
         for chars in triplets:
             m = hashlib.sha256()
-            m.update("{}{}{}{}".format(txt[chars[0]], txt[chars[1]], 
+            m.update("{}{}{}{}".format(txt[chars[0]], txt[chars[1]],
                 txt[chars[2]], self.salt).encode('utf-8'))
             self.hashes.update({tuple(chars): m.hexdigest()})
             # print("{}: {}".format(chars, m.hexdigest()))
