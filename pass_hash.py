@@ -24,10 +24,10 @@ def parse_command_line(description=("This basic tool allows people to input, "
         description=description,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("-t", "--test", default=None,
-        help="Input file containing hashed password information")
     parser.add_argument("-s", "--save", default=None,
         help="Output file to save password hashes")
+    parser.add_argument("-t", "--test", default=None,
+        help="Input file containing hashed password information")
 
     return parser.parse_args()
 
@@ -138,3 +138,5 @@ if __name__ == '__main__':
         myHash.LoadHash(args.test)
     elif args.save:
         myHash.SaveHash(args.save)
+    else:
+        sys.exit("No options given. Exiting.")
